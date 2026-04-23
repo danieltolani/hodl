@@ -38,7 +38,10 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git diff --quiet automation/processed.json || \
-            git add automation/processed.json && \
-            git commit -m "chore: update processed emails [skip ci]" && \
+          if ! git diff --quiet automation/processed.json; then
+            git add automation/processed.json
+            git commit -m "chore: update processed emails [skip ci]"
             git push
+          else
+            echo "No new emails processed — nothing to commit."
+          fi
