@@ -11,7 +11,7 @@ import SwiftUI
 struct HodlApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView()
         }
     }
 }

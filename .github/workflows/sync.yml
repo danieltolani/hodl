@@ -1,0 +1,41 @@
+name: Sync Globus Bank → Notion
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # every 10 minutes — change to '*/5' for 5-min, '*/30' for 30-min
+  workflow_dispatch:           # lets you trigger a manual run from the GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # needed to commit processed.json back to the repo
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Run sync
+        env:
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          RUN_ONCE: 'true'
+        run: node automation/index.js
+
+      - name: Persist processed.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet automation/processed.json || \
+            git add automation/processed.json && \
+            git commit -m "chore: update processed emails [skip ci]" && \
+            git push
