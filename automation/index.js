@@ -96,7 +96,7 @@ async function listMessages(gmail) {
   const res = await gmail.users.messages.list({
     userId: 'me',
     q: GMAIL_QUERY,
-    maxResults: 50,
+    maxResults: 500,
   });
   return res.data.messages ?? [];
 }
