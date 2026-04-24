@@ -19,7 +19,7 @@ const { client_id, client_secret } = clientJson.installed ?? clientJson.web;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROCESSED_FILE = join(__dirname, 'processed.json');
-const POLL_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+const POLL_INTERVAL_MS = 1 * 60 * 1000; // 1 minute
 const GMAIL_QUERY = 'from:globusbank subject:debit';
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
