@@ -6,7 +6,8 @@
     "start": "node automation/index.js",
     "auth": "node automation/auth.js",
     "cleanup": "node automation/cleanup.js",
-    "dedup": "node automation/dedup.js"
+    "dedup": "node automation/dedup.js",
+    "cleanup-months": "node automation/cleanup-months.js"
   },
   "dependencies": {
     "@notionhq/client": "^2.2.15",

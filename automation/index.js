@@ -20,7 +20,13 @@ const { client_id, client_secret } = clientJson.installed ?? clientJson.web;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROCESSED_FILE = join(__dirname, 'processed.json');
 const POLL_INTERVAL_MS = 1 * 60 * 1000; // 1 minute
-const GMAIL_QUERY = 'from:globusbank subject:debit';
+
+function currentMonthQuery() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  return `from:globusbank subject:debit after:${year}/${month}/01`;
+}
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
@@ -89,7 +95,7 @@ function stripHtml(html) {
 async function listMessages(gmail) {
   const res = await gmail.users.messages.list({
     userId: 'me',
-    q: GMAIL_QUERY,
+    q: currentMonthQuery(),
     maxResults: 500,
   });
   return res.data.messages ?? [];
@@ -151,7 +157,15 @@ async function run() {
 
       if (!parsed.amount) {
         console.warn(`  [SKIP] ${id} — could not extract amount`);
-        processed.add(id); // Mark to avoid retrying a malformed email
+        processed.add(id);
+        continue;
+      }
+
+      // Skip if not in the current month/year
+      const now = new Date();
+      const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      if (!parsed.date.startsWith(currentYearMonth)) {
+        processed.add(id);
         continue;
       }
 
