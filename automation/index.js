@@ -8,24 +8,18 @@ import { addExpenseRow } from './notion.js';
 
 const __root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-// Credentials: env vars take priority (GitHub Actions), fall back to client.json (local dev)
-let client_id, client_secret;
-if (process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET) {
-  client_id = process.env.GMAIL_CLIENT_ID;
-  client_secret = process.env.GMAIL_CLIENT_SECRET;
-} else {
-  try {
-    const clientJson = JSON.parse(readFileSync(join(__root, 'client.json'), 'utf8'));
-    ({ client_id, client_secret } = clientJson.installed ?? clientJson.web);
-  } catch {
-    console.error('No Gmail credentials found. Set GMAIL_CLIENT_ID/GMAIL_CLIENT_SECRET env vars or add client.json.');
-    process.exit(1);
-  }
+let clientJson;
+try {
+  clientJson = JSON.parse(readFileSync(join(__root, 'client.json'), 'utf8'));
+} catch {
+  console.error('client.json not found. Download it from Google Cloud Console and place it in the project root.');
+  process.exit(1);
 }
+const { client_id, client_secret } = clientJson.installed ?? clientJson.web;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROCESSED_FILE = join(__dirname, 'processed.json');
-const POLL_INTERVAL_MS = 1 * 60 * 1000; // 1 minute
+const POLL_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 const GMAIL_QUERY = 'from:globusbank subject:debit';
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
@@ -190,10 +184,5 @@ if (missing.length) {
   process.exit(1);
 }
 
-if (process.env.RUN_ONCE === 'true') {
-  // Single-run mode for GitHub Actions
-  run().catch(err => { console.error(err); process.exit(1); });
-} else {
-  run();
-  setInterval(run, POLL_INTERVAL_MS);
-}
+run();
+setInterval(run, POLL_INTERVAL_MS);
