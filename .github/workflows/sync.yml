@@ -41,6 +41,7 @@ jobs:
           if ! git diff --quiet automation/processed.json; then
             git add automation/processed.json
             git commit -m "chore: update processed emails [skip ci]"
+            git pull --rebase
             git push
           else
             echo "No new emails processed — nothing to commit."
